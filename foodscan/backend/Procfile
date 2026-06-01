@@ -1,0 +1,7 @@
+cd C:\Users\91875\Documents\FoodCalorieApp\foodscan\backend
+
+# Create Procfile with content
+@"
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+worker: python monitor_and_retrain.py
+"@ | Out-File -Encoding UTF8 Procfile

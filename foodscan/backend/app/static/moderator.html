@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Moderator Panel</title>
+  <style>
+    body { font-family: Arial; padding: 40px; }
+    .card {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    img {
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🛠 Moderator Dashboard</h1>
+<button onclick="loadCandidates()">Load New Label Candidates</button>
+
+<div id="results"></div>
+
+<script>
+async function loadCandidates(){
+  const res = await fetch("/admin/new-candidates");
+  const data = await res.json();
+
+  let html = "";
+
+  data.forEach(item=>{
+    html += `
+      <div class="card">
+        <p><b>Scan ID:</b> ${item.scan_id}</p>
+        <p><b>Suggested Label:</b> ${item.label}</p>
+
+        <!-- ✅ Correct image path -->
+        <img src="/uploads/${item.image_name}" width="200"/><br/><br/>
+
+        <button onclick="approve('${item.scan_id}')">Approve</button>
+        <button onclick="decline('${item.scan_id}')">Decline</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("results").innerHTML = html;
+}
+
+async function approve(scanId){
+  await fetch("/admin/approve/"+scanId, {method:"POST"});
+  alert("Approved!");
+  loadCandidates();
+}
+
+async function decline(scanId){
+  await fetch("/admin/decline/"+scanId, {method:"POST"});
+  alert("Declined!");
+  loadCandidates();
+}
+</script>
+
+</body>
+</html>
