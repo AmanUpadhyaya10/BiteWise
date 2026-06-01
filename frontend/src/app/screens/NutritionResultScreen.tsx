@@ -202,23 +202,9 @@ function Top5Picker({
               )}
             </div>
 
-            <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Nutrition per 100g (optional)</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Calories", key: "kcal" as const, color: "text-orange-500" },
-                { label: "Protein (g)", key: "protein" as const, color: "text-blue-500" },
-                { label: "Carbs (g)", key: "carbs" as const, color: "text-amber-500" },
-                { label: "Fat (g)", key: "fat" as const, color: "text-red-500" },
-              ].map(({ label, key, color }) => (
-                <div key={key}>
-                  <label className={`text-xs font-medium mb-1 block ${color}`}>{label}</label>
-                  <input type="number" min="0" placeholder="0"
-                    value={customNutr?.[key]?.toString() ?? ""}
-                    onChange={(e) => setCustomNutr({ ...customNutr!, [key]: parseFloat(e.target.value) || null })}
-                    className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              💡 Nutrition will be looked up automatically from our database
+            </p>
           </div>
         )}
 
@@ -292,13 +278,18 @@ export default function NutritionResultScreen() {
     const food = next[idx];
 
     if (isOther) {
-      // Use custom nutrition if provided, else keep existing
-      next[idx] = {
-        ...food,
-        name: chosenLabel,
-        nutrition: customNutr ?? food.nutrition,
-        confirmed: true,
-      };
+      // Search nutrition DB by name automatically
+      try {
+        const res = await api.nutritionSearch(chosenLabel, 1);
+        next[idx] = {
+          ...food,
+          name: chosenLabel,
+          nutrition: res.results.length > 0 ? nutritionFromResult(res.results[0].nutrition) : food.nutrition,
+          confirmed: true,
+        };
+      } catch {
+        next[idx] = { ...food, name: chosenLabel, confirmed: true };
+      }
     } else {
       // Fetch nutrition for chosen label from our DB
       try {

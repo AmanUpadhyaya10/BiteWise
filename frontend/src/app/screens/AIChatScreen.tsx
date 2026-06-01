@@ -96,7 +96,11 @@ WEEKLY AVERAGE: ${weeklyAvgCal} kcal/day
       const BASE_URL = (import.meta.env.VITE_API_URL as string) ?? "http://localhost:8000";
       const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+        headers: { 
+          "Content-Type": "application/json", 
+          "ngrok-skip-browser-warning": "true",
+          "x-user-id": auth.userId() ?? ""
+        },
         body: JSON.stringify({
           system: `You are a friendly, knowledgeable nutrition assistant embedded in a food tracking app called FoodScan. 
 You help users understand their eating habits and give practical, personalized advice.
@@ -148,7 +152,7 @@ ${context}`,
             </div>
             <div>
               <h1 className="text-white font-bold text-base leading-tight">Nutrition AI</h1>
-              <p className="text-white/70 text-xs">Powered by Claude</p>
+              <p className="text-white/70 text-xs">Powered by Groq AI</p>
             </div>
           </div>
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

@@ -77,4 +77,11 @@ dist/
 # =====================
 .DS_Store
 Thumbs.db
-desktop.ini
+desktop.ini"dataset/" 
+"merged_dataset/" 
+"merged_dataset.zip" 
+"frontend.zip" 
+"trained_model/" 
+"trained_model_b4/" 
+"__pycache__/" 
+"*.pyc" 

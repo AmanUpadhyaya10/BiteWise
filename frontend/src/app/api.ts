@@ -1,5 +1,5 @@
 /**
- * api.ts  –  All calls to the BitWise FastAPI backend
+ * api.ts  –  All calls to the Bitewise FastAPI backend
  */
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string) ?? "http://localhost:8000";
@@ -8,19 +8,23 @@ const BASE_URL = (import.meta.env.VITE_API_URL as string) ?? "http://localhost:8
 // Auth helpers
 // ─────────────────────────────────────────────
 export const auth = {
-  save(userId: string, name: string, email: string) {
+  save(userId: string, name: string, email: string, role = "user") {
     localStorage.setItem("user_id", userId);
     localStorage.setItem("user_name", name);
     localStorage.setItem("user_email", email);
+    localStorage.setItem("user_role", role);
   },
   userId(): string | null { return localStorage.getItem("user_id"); },
   name(): string { return localStorage.getItem("user_name") ?? "You"; },
   email(): string { return localStorage.getItem("user_email") ?? ""; },
+  role(): string { return localStorage.getItem("user_role") ?? "user"; },
   isLoggedIn(): boolean { return !!localStorage.getItem("user_id"); },
+  isModerator(): boolean { return localStorage.getItem("user_role") === "moderator"; },
   logout() {
     localStorage.removeItem("user_id");
     localStorage.removeItem("user_name");
     localStorage.removeItem("user_email");
+    localStorage.removeItem("user_role");
   },
 };
 
@@ -114,22 +118,22 @@ export interface Goals {
 // ─────────────────────────────────────────────
 export const api = {
   // Nutrition search
-  async nutritionSearch(q: string) {
+  async nutritionSearch(q: string, limit = 5) {
     return request<{ results: Array<{ food: string; score: number; nutrition: Record<string, number> }> }>(
-      `/nutrition/search?q=${encodeURIComponent(q)}`, {}, false
+      `/nutrition/search?q=${encodeURIComponent(q)}&limit=${limit}`, {}, false
     );
   },
 
   // Auth
   async register(email: string, password: string, name: string) {
-    return request<{ user_id: string; email: string; name: string }>(
+    return request<{ user_id: string; email: string; name: string; role?: string }>(
       "/auth/register",
       { method: "POST", body: JSON.stringify({ email, password, name }) },
       false
     );
   },
   async login(email: string, password: string) {
-    return request<{ user_id: string; email: string; name: string }>(
+    return request<{ user_id: string; email: string; name: string; role?: string }>(
       "/auth/login",
       { method: "POST", body: JSON.stringify({ email, password }) },
       false
@@ -138,7 +142,7 @@ export const api = {
 
   // Profile
   async getProfile() {
-    return request<{ id: string; name: string; email: string; goals: Goals }>("/users/me");
+    return request<{ id: string; name: string; email: string; role?: string; goals: Goals }>("/users/me");
   },
   async updateProfile(name: string) {
     return request<{ ok: boolean; name: string }>("/users/me", {
@@ -156,19 +160,15 @@ export const api = {
     });
   },
 
-  // Predict (food scan) — custom fetch to handle FormData + ngrok header
+  // Predict
   async predict(imageFile: File, mode: "single" | "multi") {
     const fd = new FormData();
     fd.append("image", imageFile);
     fd.append("mode", mode);
     const uid = auth.userId();
-    const headers: Record<string, string> = {
-      "ngrok-skip-browser-warning": "true",
-    };
+    const headers: Record<string, string> = { "ngrok-skip-browser-warning": "true" };
     if (uid) headers["x-user-id"] = uid;
-    const res = await fetch(`${BASE_URL}/predict`, {
-      method: "POST", headers, body: fd,
-    });
+    const res = await fetch(`${BASE_URL}/predict`, { method: "POST", headers, body: fd });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(err.detail ?? "Request failed");
@@ -181,9 +181,7 @@ export const api = {
     const fd = new FormData();
     fd.append("image", imageFile);
     const headers: Record<string, string> = { "ngrok-skip-browser-warning": "true" };
-    const res = await fetch(`${BASE_URL}/scan-barcode`, {
-      method: "POST", headers, body: fd,
-    });
+    const res = await fetch(`${BASE_URL}/scan-barcode`, { method: "POST", headers, body: fd });
     return res.json() as Promise<{ barcode?: string; error?: string }>;
   },
   async lookupBarcode(code: string) {
@@ -193,7 +191,13 @@ export const api = {
       serving_grams: number | null; not_found?: boolean; error?: string;
     }>(`/barcode/${code}`, {}, false);
   },
-
+  // Achievements
+  async getAchievements() {
+    const response = await fetch(`${this.BASE_URL}/achievements`, {
+      headers: { "x-user-id": auth.userId() ?? "" },
+    });
+    return response.json();
+  },
   // Scan label (OCR)
   async scanLabel(imageFile: File) {
     const fd = new FormData();
@@ -201,9 +205,7 @@ export const api = {
     const uid = auth.userId();
     const headers: Record<string, string> = { "ngrok-skip-browser-warning": "true" };
     if (uid) headers["x-user-id"] = uid;
-    const res = await fetch(`${BASE_URL}/scan-label`, {
-      method: "POST", headers, body: fd,
-    });
+    const res = await fetch(`${BASE_URL}/scan-label`, { method: "POST", headers, body: fd });
     return res.json() as Promise<{ raw_text: string; nutrition: Record<string, number> }>;
   },
 
@@ -228,16 +230,8 @@ export const api = {
   async deleteMeal(meal_id: string) {
     return request<{ ok: boolean }>(`/meals/${meal_id}`, { method: "DELETE" });
   },
-  async getToday() {
-    return request<TodayResponse>("/meals/today");
-  },
-  async getHistory(days = 7) {
-    return request<MealEntry[]>(`/meals/history?days=${days}`);
-  },
-  async getWeekly() {
-    return request<WeeklyDay[]>("/meals/weekly");
-  },
-  async getStreak() {
-    return request<{ streak: number }>("/meals/streak");
-  },
+  async getToday() { return request<TodayResponse>("/meals/today"); },
+  async getHistory(days = 7) { return request<MealEntry[]>(`/meals/history?days=${days}`); },
+  async getWeekly() { return request<WeeklyDay[]>("/meals/weekly"); },
+  async getStreak() { return request<{ streak: number }>("/meals/streak"); },
 };

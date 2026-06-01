@@ -19,6 +19,7 @@ import AchievementsScreen from "./screens/AchievementsScreen";
 import CalendarDemoScreen from "./screens/CalendarDemoScreen";
 import WeeklyReportScreen from "./screens/WeeklyReportScreen";
 import AIChatScreen from "./screens/AIChatScreen";
+import ModeratorScreen from "./screens/ModeratorScreen";
 
 export const router = createBrowserRouter([
   { path: "/", Component: RootScreen },
@@ -41,4 +42,5 @@ export const router = createBrowserRouter([
   { path: "/calendar-demo", Component: CalendarDemoScreen },
   { path: "/weekly-report", Component: WeeklyReportScreen },
   { path: "/chat", Component: AIChatScreen },
+  { path: "/moderator", Component: ModeratorScreen },
 ]);

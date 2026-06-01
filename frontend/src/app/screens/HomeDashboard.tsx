@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Camera, Upload, Flame, Beef, Wheat, Droplet,
-  TrendingUp, Award, Sparkles, Bone, Activity, Calendar, BarChart3,
+  TrendingUp, Award, Sparkles, Bone, Activity, Calendar, BarChart3, RefreshCw,
 } from "lucide-react";
 import BottomNavigation from "../components/BottomNavigation";
 import ProgressRing from "../components/ProgressRing";
@@ -17,6 +17,7 @@ export default function HomeDashboard() {
   const [weekly, setWeekly] = useState<WeeklyDay[]>([]);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!auth.isLoggedIn()) {
@@ -24,10 +25,19 @@ export default function HomeDashboard() {
       return;
     }
     fetchData();
+
+    // Refresh data when page comes into focus
+    const handleFocus = () => {
+      console.log("Page focused - refreshing data");
+      fetchData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const [todayData, weeklyData, streakData] = await Promise.all([
         api.getToday(),
         api.getWeekly(),
@@ -36,26 +46,37 @@ export default function HomeDashboard() {
       setToday(todayData);
       setWeekly(weeklyData);
       setStreak(streakData.streak);
+      console.log("Dashboard data refreshed", {
+        meals: todayData.meals.length,
+        calories: todayData.totals.calories,
+        streak: streakData.streak,
+      });
     } catch (e) {
       console.error("Dashboard load error", e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+  };
+
   const caloriesConsumed = today?.totals.calories ?? 0;
-  const caloriesGoal    = today?.goals.calories    ?? 2000;
+  const caloriesGoal = today?.goals.calories ?? 2000;
   const caloriesRemaining = Math.max(caloriesGoal - caloriesConsumed, 0);
   const progressPercentage = Math.min((caloriesConsumed / caloriesGoal) * 100, 100);
 
   const proteinValue = today?.totals.protein ?? 0;
-  const proteinMax   = today?.goals.protein  ?? 150;
-  const carbsValue   = today?.totals.carbs   ?? 0;
-  const carbsMax     = today?.goals.carbs    ?? 250;
-  const fatValue     = today?.totals.fat     ?? 0;
-  const fatMax       = today?.goals.fat      ?? 70;
-  const fiberValue   = today?.totals.fiber   ?? 0;
-  const fiberMax     = today?.goals.fiber    ?? 30;
+  const proteinMax = today?.goals.protein ?? 150;
+  const carbsValue = today?.totals.carbs ?? 0;
+  const carbsMax = today?.goals.carbs ?? 250;
+  const fatValue = today?.totals.fat ?? 0;
+  const fatMax = today?.goals.fat ?? 70;
+  const fiberValue = today?.totals.fiber ?? 0;
+  const fiberMax = today?.goals.fiber ?? 30;
 
   const weeklyChartData = weekly.map((d) => ({ day: d.day, value: d.value }));
 
@@ -68,12 +89,26 @@ export default function HomeDashboard() {
             <p className="text-white/80 text-sm">Good Morning</p>
             <h1 className="text-white text-2xl font-bold">{auth.name() || "There"}</h1>
           </div>
-          <button
-            onClick={() => navigate("/insights")}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"
-          >
-            <Sparkles className="text-white" size={20} />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all disabled:opacity-50"
+              title="Refresh data"
+            >
+              <RefreshCw
+                className={`text-white ${refreshing ? "animate-spin" : ""}`}
+                size={20}
+              />
+            </button>
+            <button
+              onClick={() => navigate("/insights")}
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/30 transition-all"
+              title="AI Insights"
+            >
+              <Sparkles className="text-white" size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Streak */}
@@ -82,7 +117,9 @@ export default function HomeDashboard() {
             <Flame size={28} className="text-orange-400" />
             <div>
               <p className="text-white/80 text-sm">Current Streak</p>
-              <p className="text-white text-2xl font-bold">{streak} Day{streak !== 1 ? "s" : ""} 🔥</p>
+              <p className="text-white text-2xl font-bold">
+                {streak} Day{streak !== 1 ? "s" : ""} 🔥
+              </p>
             </div>
           </div>
         </div>
@@ -98,7 +135,12 @@ export default function HomeDashboard() {
                 {Math.round(caloriesRemaining)} kcal remaining
               </p>
             </div>
-            <ProgressRing percentage={progressPercentage} size={100} strokeWidth={10} color="white" />
+            <ProgressRing
+              percentage={progressPercentage}
+              size={100}
+              strokeWidth={10}
+              color="white"
+            />
           </div>
         </div>
       </div>
@@ -109,14 +151,38 @@ export default function HomeDashboard() {
 
       {/* Macro Cards */}
       <div className="px-6 mt-6 grid grid-cols-2 gap-3">
-        <NutritionCard icon={<Beef size={20} className="text-blue-500" />} label="Protein"
-          value={Math.round(proteinValue)} max={proteinMax} unit="g" color="#3B82F6" />
-        <NutritionCard icon={<Wheat size={20} className="text-amber-500" />} label="Carbs"
-          value={Math.round(carbsValue)} max={carbsMax} unit="g" color="#F59E0B" />
-        <NutritionCard icon={<Droplet size={20} className="text-red-500" />} label="Fat"
-          value={Math.round(fatValue)} max={fatMax} unit="g" color="#EF4444" />
-        <NutritionCard icon={<Bone size={20} className="text-green-500" />} label="Fiber"
-          value={Math.round(fiberValue)} max={fiberMax} unit="g" color="#22C55E" />
+        <NutritionCard
+          icon={<Beef size={20} className="text-blue-500" />}
+          label="Protein"
+          value={Math.round(proteinValue)}
+          max={proteinMax}
+          unit="g"
+          color="#3B82F6"
+        />
+        <NutritionCard
+          icon={<Wheat size={20} className="text-amber-500" />}
+          label="Carbs"
+          value={Math.round(carbsValue)}
+          max={carbsMax}
+          unit="g"
+          color="#F59E0B"
+        />
+        <NutritionCard
+          icon={<Droplet size={20} className="text-red-500" />}
+          label="Fat"
+          value={Math.round(fatValue)}
+          max={fatMax}
+          unit="g"
+          color="#EF4444"
+        />
+        <NutritionCard
+          icon={<Bone size={20} className="text-green-500" />}
+          label="Fiber"
+          value={Math.round(fiberValue)}
+          max={fiberMax}
+          unit="g"
+          color="#22C55E"
+        />
       </div>
 
       {/* Weekly Chart */}
@@ -124,15 +190,21 @@ export default function HomeDashboard() {
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900">Weekly Calories</h3>
-            <button onClick={() => navigate("/weekly-report")}
-              className="flex items-center gap-1 text-[#22C55E] text-sm font-medium">
-              <BarChart3 size={16} />Report
+            <button
+              onClick={() => navigate("/weekly-report")}
+              className="flex items-center gap-1 text-[#22C55E] text-sm font-medium"
+            >
+              <BarChart3 size={16} />
+              Report
             </button>
           </div>
-          {weeklyChartData.length > 0
-            ? <WeeklyChart data={weeklyChartData} />
-            : <p className="text-gray-400 text-sm text-center py-4">No data yet — start logging meals!</p>
-          }
+          {weeklyChartData.length > 0 ? (
+            <WeeklyChart data={weeklyChartData} />
+          ) : (
+            <p className="text-gray-400 text-sm text-center py-4">
+              No data yet — start logging meals!
+            </p>
+          )}
         </div>
       </div>
 
@@ -142,28 +214,28 @@ export default function HomeDashboard() {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate("/scan")}
-            className="bg-[#22C55E] rounded-3xl p-5 flex flex-col items-center gap-2 shadow-lg shadow-[#22C55E]/20 text-white"
+            className="bg-[#22C55E] rounded-3xl p-5 flex flex-col items-center gap-2 shadow-lg shadow-[#22C55E]/20 text-white hover:shadow-xl transition-shadow"
           >
             <Camera size={28} />
             <span className="font-semibold text-sm">Scan Food</span>
           </button>
           <button
             onClick={() => navigate("/history")}
-            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700"
+            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700 hover:shadow-md transition-shadow"
           >
             <Calendar size={28} />
             <span className="font-semibold text-sm">Meal History</span>
           </button>
           <button
             onClick={() => navigate("/insights")}
-            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700"
+            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700 hover:shadow-md transition-shadow"
           >
             <TrendingUp size={28} />
             <span className="font-semibold text-sm">Insights</span>
           </button>
           <button
             onClick={() => navigate("/achievements")}
-            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700"
+            className="bg-white rounded-3xl p-5 flex flex-col items-center gap-2 border border-gray-200 shadow-sm text-gray-700 hover:shadow-md transition-shadow"
           >
             <Award size={28} />
             <span className="font-semibold text-sm">Achievements</span>
@@ -176,13 +248,19 @@ export default function HomeDashboard() {
         <div className="px-6 mt-6 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-900">Today's Meals</h3>
-            <button onClick={() => navigate("/history")}
-              className="text-[#22C55E] text-sm font-medium">View All</button>
+            <button
+              onClick={() => navigate("/history")}
+              className="text-[#22C55E] text-sm font-medium hover:underline"
+            >
+              View All
+            </button>
           </div>
           <div className="space-y-2">
             {today.meals.slice(0, 3).map((m) => (
-              <div key={m.id}
-                className="bg-white rounded-2xl p-4 flex items-center justify-between border border-gray-100">
+              <div
+                key={m.id}
+                className="bg-white rounded-2xl p-4 flex items-center justify-between border border-gray-100 hover:shadow-md transition-shadow"
+              >
                 <div>
                   <p className="font-medium text-gray-900 capitalize">{m.food_name}</p>
                   <p className="text-xs text-gray-500 capitalize">

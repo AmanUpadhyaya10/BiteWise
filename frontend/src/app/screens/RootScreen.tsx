@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
+import { auth } from "../api";
 
 export default function RootScreen() {
   const navigate = useNavigate();
@@ -12,6 +13,9 @@ export default function RootScreen() {
     if (!userId) {
       // Not logged in — always go to login
       navigate("/login");
+    } else if (auth.isModerator()) {
+      // Moderators go straight to moderator dashboard
+      navigate("/moderator");
     } else if (onboardingCompleted === "true") {
       navigate("/home");
     } else if (hasSeenWelcome === "true") {
@@ -20,7 +24,7 @@ export default function RootScreen() {
       navigate("/welcome");
     }
   }, [navigate]);
-  // Show a simple loading state while redirecting
+
   return (
     <div className="min-h-screen bg-white max-w-md mx-auto flex items-center justify-center">
       <div className="text-center">
@@ -29,4 +33,4 @@ export default function RootScreen() {
       </div>
     </div>
   );
-}
+} 
