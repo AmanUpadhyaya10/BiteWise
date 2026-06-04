@@ -22,19 +22,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# DEBUG SECTION
-RUN echo "===== CHECKING NUTRITION FILE =====" && \
-    ls -lh /app/foodscan/backend/app/nutrition/nutrition_master.json || true
-
+# ===== DEBUG NUTRITION FILE =====
 RUN python -c "\
 import os; \
-p='/app/foodscan/backend/app/nutrition/nutrition_master.json'; \
+p='/app/app/nutrition/nutrition_master.json'; \
+print('=============================='); \
+print('NUTRITION FILE DEBUG'); \
+print('PATH:', p); \
 print('EXISTS:', os.path.exists(p)); \
 print('SIZE:', os.path.getsize(p) if os.path.exists(p) else 'missing'); \
-print('FIRST 300 CHARS:'); \
-print(open(p,'r',encoding='utf-8',errors='ignore').read(300)) \
+print('=============================='); \
 "
 
+RUN find /app -name 'nutrition_master.json' || true
+
+# Create required folders
 RUN mkdir -p app/storage/uploads && \
     mkdir -p app/storage/crops && \
     mkdir -p app/storage/dataset/train && \
