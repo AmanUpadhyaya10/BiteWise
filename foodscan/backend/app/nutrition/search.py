@@ -7,6 +7,21 @@ from rapidfuzz import process, fuzz
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "nutrition_master.json"
 
+print("=" * 80)
+print("NUTRITION DB DEBUG")
+print(f"DB_PATH = {DB_PATH}")
+print(f"EXISTS = {DB_PATH.exists()}")
+
+if DB_PATH.exists():
+    print(f"SIZE = {DB_PATH.stat().st_size} bytes")
+
+    with open(DB_PATH, "r", encoding="utf-8", errors="ignore") as f:
+        first_300 = f.read(300)
+
+    print("FIRST 300 CHARS:")
+    print(first_300)
+    print("=" * 80)
+
 # Load database once
 with open(DB_PATH, "r", encoding="utf-8") as f:
     NUTRITION_DB = json.load(f)
@@ -33,6 +48,7 @@ def search_food(query, limit=5):
     )
 
     results = []
+
     for match, score, _ in matches:
         results.append({
             "food": match,
@@ -41,7 +57,3 @@ def search_food(query, limit=5):
         })
 
     return results
-
-
-def get_nutrition(food_key):
-    return NUTRITION_DB.get(food_key)
