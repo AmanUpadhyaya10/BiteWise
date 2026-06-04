@@ -1,4 +1,8 @@
-﻿RUN apt-get update && apt-get install -y --no-install-recommends \
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ \
