@@ -3,7 +3,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies including git-lfs
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -13,23 +13,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     curl \
     git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Git LFS
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get install -y git-lfs && \
-    git lfs install
+    git-lfs \
+    && rm -rf /var/lib/apt/lists/* \
+    && git lfs install
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy code and authenticate for LFS
+# Copy code and pull LFS files
 COPY . .
 RUN git init && \
     git config user.email "deploy@railway.app" && \
     git config user.name "Railway" && \
     git remote add origin https://github.com/AmanUpadhyaya10/BiteWise.git && \
-    git lfs pull --include="nutrition_master.json" || true
+    git lfs pull --include="nutrition_master.json" origin main || true
 
 RUN mkdir -p app/storage/{uploads,crops,dataset/{train,test}} \
     && mkdir -p app/storage/ml/{classifier,detector}
