@@ -1,12 +1,9 @@
-﻿
 FROM python:3.11-slim
 
 WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
     build-essential \
     gcc \
     g++ \
@@ -15,19 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Git LFS
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get install -y git-lfs
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-
-# Initialize git and pull LFS files
-RUN git init && \
-    git lfs install && \
-    git lfs pull origin main 2>/dev/null || true
 
 RUN mkdir -p app/storage/{uploads,crops,dataset/{train,test}} \
     && mkdir -p app/storage/ml/{classifier,detector}
