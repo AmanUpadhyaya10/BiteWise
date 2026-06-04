@@ -1,5 +1,4 @@
-﻿
-FROM python:3.11-slim
+﻿FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -14,24 +13,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     git-lfs \
-    && rm -rf /var/lib/apt/lists/* \
-    && git lfs install
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git lfs install
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy code
 COPY . .
 
-# Pull LFS files using GitHub token
-RUN git init && \
-    git config user.email "deploy@railway.app" && \
-    git config user.name "Railway" && \
-    git remote add origin https://${GITHUB_TOKEN}@github.com/AmanUpadhyaya10/BiteWise.git && \
-    git lfs pull --include="*.json" origin main || true
+# DEBUG SECTION
+RUN echo "===== CHECKING NUTRITION FILE =====" && \
+    ls -lh /app/foodscan/backend/app/nutrition/nutrition_master.json || true
 
-RUN mkdir -p app/storage/{uploads,crops,dataset/{train,test}} \
-    && mkdir -p app/storage/ml/{classifier,detector}
+RUN python -c "\
+import os; \
+p='/app/foodscan/backend/app/nutrition/nutrition_master.json'; \
+print('EXISTS:', os.path.exists(p)); \
+print('SIZE:', os.path.getsize(p) if os.path.exists(p) else 'missing'); \
+print('FIRST 300 CHARS:'); \
+print(open(p,'r',encoding='utf-8',errors='ignore').read(300)) \
+"
+
+RUN mkdir -p app/storage/uploads && \
+    mkdir -p app/storage/crops && \
+    mkdir -p app/storage/dataset/train && \
+    mkdir -p app/storage/dataset/test && \
+    mkdir -p app/storage/ml/classifier && \
+    mkdir -p app/storage/ml/detector
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
