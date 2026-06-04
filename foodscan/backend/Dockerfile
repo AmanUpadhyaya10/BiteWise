@@ -5,14 +5,14 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
     build-essential \
     gcc \
     g++ \
     libzbar0 \
     libzbar-dev \
     pkg-config \
+    curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Git LFS
