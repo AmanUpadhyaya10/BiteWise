@@ -1,0 +1,56 @@
+[2026-05-27 14:46:47,784] INFO: ================================================================================
+[2026-05-27 14:46:47,833] INFO: ================================================================================
+[2026-05-27 14:46:47,833] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:46:47,834] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:47:42,908] INFO: ================================================================================
+[2026-05-27 14:47:42,913] INFO: ================================================================================
+[2026-05-27 14:47:42,913] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:47:42,913] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:48:43,305] INFO: ================================================================================
+[2026-05-27 14:48:43,313] INFO: ================================================================================
+[2026-05-27 14:48:43,314] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:48:43,314] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:50:06,547] INFO: ================================================================================
+[2026-05-27 14:50:06,552] INFO: ================================================================================
+[2026-05-27 14:50:06,552] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:50:06,552] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:52:12,389] INFO: ================================================================================
+[2026-05-27 14:52:12,389] INFO:  Starting Bitewise Retraining Monitor
+[2026-05-27 14:52:12,389] INFO: ================================================================================
+[2026-05-27 14:52:12,390] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:52:12,390] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:52:24,672] INFO: ================================================================================
+[2026-05-27 14:52:24,672] INFO:  Starting Bitewise Retraining Monitor
+[2026-05-27 14:52:24,672] INFO: ================================================================================
+[2026-05-27 14:52:24,672] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:52:24,673] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:53:01,448] INFO: ================================================================================
+[2026-05-27 14:53:01,449] INFO:  Starting Bitewise Retraining Monitor
+[2026-05-27 14:53:01,449] INFO: ================================================================================
+[2026-05-27 14:53:01,449] ERROR: Failed to load config: Expecting value: line 1 column 1 (char 0)
+[2026-05-27 14:53:01,449] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:54:14,195] INFO: ================================================================================
+[2026-05-27 14:54:14,195] INFO: Starting Bitewise Retraining Monitor
+[2026-05-27 14:54:14,195] INFO: ================================================================================
+[2026-05-27 14:54:14,196] INFO: Attempting to load config from: C:\Users\91875\Documents\FoodCalorieApp\foodscan\backend\retrain_config.json
+[2026-05-27 14:54:14,196] INFO: File exists: True
+[2026-05-27 14:54:14,196] INFO: Opening config file...
+[2026-05-27 14:54:14,196] INFO: File content length: 136 bytes
+[2026-05-27 14:54:14,196] ERROR: Invalid JSON in config: Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)
+[2026-05-27 14:54:14,197] ERROR: Failed to load config. Exiting.
+[2026-05-27 14:55:08,601] INFO: ================================================================================
+[2026-05-27 14:55:08,601] INFO: Starting Bitewise Retraining Monitor
+[2026-05-27 14:55:08,601] INFO: ================================================================================
+[2026-05-27 14:55:08,601] INFO: Attempting to load config from: C:\Users\91875\Documents\FoodCalorieApp\foodscan\backend\retrain_config.json
+[2026-05-27 14:55:08,601] INFO: File exists: True
+[2026-05-27 14:55:08,602] INFO: Opening config file...
+[2026-05-27 14:55:08,602] INFO: File content length: 122 bytes
+[2026-05-27 14:55:08,602] INFO: Config loaded successfully: {'enabled': True, 'images_threshold': 10, 'check_interval_seconds': 300, 'last_image_count': 0, 'last_retrain_time': None}
+[2026-05-27 14:55:08,602] INFO: Configuration loaded successfully:
+[2026-05-27 14:55:08,602] INFO:   Threshold: 10 images
+[2026-05-27 14:55:08,603] INFO:   Check interval: 300 seconds (5.0 minutes)
+[2026-05-27 14:55:08,603] INFO:   Training directory: C:\Users\91875\Documents\FoodCalorieApp\foodscan\backend\app\storage\dataset\train
+[2026-05-27 14:55:08,603] INFO:   Enabled: True
+[2026-05-27 14:55:08,603] INFO: 
+[2026-05-27 14:55:08,607] INFO: [Check #1 @ 2026-05-27 14:55:08] 4 images | Need 6 more images (4/10)
+[2026-05-27 14:57:35,604] INFO: Monitor stopped by user (Ctrl+C)

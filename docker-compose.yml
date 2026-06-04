@@ -1,0 +1,74 @@
+﻿version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: bitewise-db
+    environment:
+      POSTGRES_USER: bitewise
+      POSTGRES_PASSWORD: dev_password_change_me
+      POSTGRES_DB: bitewise_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitewise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bitewise-network
+
+  backend:
+    build:
+      context: ./foodscan/backend
+      dockerfile: Dockerfile
+    container_name: bitewise-api
+    environment:
+      DATABASE_URL: postgresql://bitewise:dev_password_change_me@postgres:5432/bitewise_db
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      CLOUDINARY_NAME: ${CLOUDINARY_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      UPLOADS_DIR: /app/app/storage/uploads
+      TRAINING_DIR: /app/app/storage/dataset/train
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./foodscan/backend/app:/app/app
+      - backend_storage:/app/app/storage
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - bitewise-network
+
+  worker:
+    build:
+      context: ./foodscan/backend
+      dockerfile: Dockerfile
+    container_name: bitewise-worker
+    environment:
+      DATABASE_URL: postgresql://bitewise:dev_password_change_me@postgres:5432/bitewise_db
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      CLOUDINARY_NAME: ${CLOUDINARY_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - backend_storage:/app/app/storage
+    command: python scheduled_retrain.py
+    networks:
+      - bitewise-network
+
+volumes:
+  postgres_data:
+  backend_storage:
+
+networks:
+  bitewise-network:
+    driver: bridge
